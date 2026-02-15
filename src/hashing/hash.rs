@@ -3,12 +3,10 @@
 //use crate::hashing::Ripemd160;
 use crate::hashing::Sha256;
 use base_xx::serialise::Base36;
-use base_xx::serialise::Bytes;
-use base_xx::serialise::SerialString;
+use base_xx::serialise::ByteVec;
+use base_xx::serialise::EncodedString;
+use base_xx::serialise::Encoding;
 use base_xx::serialise::SerialiseError;
-use base_xx::serialise::SerialiseType;
-use base_xx::serialise::StructType;
-use base_xx::serialise::{AsBytes, FromBytes};
 
 use crate::hashing::HashAlgorithm;
 
@@ -69,65 +67,7 @@ impl Hash {
         }
     }
 
-    /// Converts the hash into a encoded serial string.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SerialiseError` if:
-    /// - The hash algorithm code cannot be converted to a byte
-    /// - The bytes cannot be converted to a base36 string
-    pub fn try_into_serialstring(
-        &self,
-        serialise_type: SerialiseType,
-    ) -> Result<SerialString, SerialiseError> {
-        match serialise_type {
-            SerialiseType::Base36 => self.try_into_serialstring_base36(),
-            _ => Err(SerialiseError::new("Inavlid SerialiseType".to_string())),
-        }
-    }
-
-    /// Converts the hash into a base36-encoded serial string.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SerialiseError` if:
-    /// - The hash algorithm code cannot be converted to a byte
-    /// - The bytes cannot be converted to a base36 string
-    pub fn try_into_serialstring_base36(&self) -> Result<SerialString, SerialiseError> {
-        match Bytes::try_from(self) {
-            Ok(bytes) => match bytes.try_into_serialstring_base36() {
-                Ok(serialstring) => Ok(serialstring),
-                Err(error) => Err(error),
-            },
-            Err(error) => Err(error),
-        }
-    }
-
-    /// Attempts to create a Hash from a serialized string representation.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SerialiseError` if:
-    /// - The serial string cannot be converted to Base36
-    /// - The Base36 string cannot be converted to bytes
-    /// - The bytes cannot be converted to a valid Hash (invalid algorithm code or format)
-    pub fn try_from_serial_string(serial_string: SerialString) -> Result<Self, SerialiseError> {
-        match Base36::try_from(serial_string) {
-            Ok(base36) => match Bytes::try_from(base36) {
-                Ok(bytes) => match Self::try_from(bytes) {
-                    Ok(hash) => Ok(hash),
-                    Err(error) => Err(error),
-                },
-                Err(error) => Err(error),
-            },
-            Err(error) => Err(error),
-        }
-    }
-}
-
-impl AsBytes for Hash {
-    type Error = SerialiseError;
-    fn try_as_bytes(&self) -> Result<Vec<u8>, Self::Error> {
+    fn try_as_bytes(&self) -> Result<Vec<u8>, SerialiseError> {
         let mut bytes = vec![];
         let algorithm: Result<u8, SerialiseError> = self.algorithm.try_into();
         match algorithm {
@@ -137,11 +77,8 @@ impl AsBytes for Hash {
         bytes.extend_from_slice(&self.bytes);
         Ok(bytes)
     }
-}
 
-impl FromBytes for Hash {
-    type Error = SerialiseError;
-    fn try_from_bytes(bytes: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from_bytes(bytes: &[u8]) -> Result<Self, SerialiseError> {
         let algorithm = HashAlgorithm::try_from(bytes[0]);
         match algorithm {
             Err(error) => Err(error),
@@ -153,53 +90,19 @@ impl FromBytes for Hash {
     }
 }
 
-impl TryFrom<Hash> for Vec<u8> {
-    type Error = SerialiseError;
-    fn try_from(value: Hash) -> Result<Self, Self::Error> {
-        match value.try_as_bytes() {
-            Ok(bytes) => Ok(bytes),
-            Err(error) => Err(error),
-        }
-    }
-}
-
-impl TryFrom<Vec<u8>> for Hash {
-    type Error = SerialiseError;
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        match Self::try_from_bytes(&value) {
-            Ok(hash) => Ok(hash),
-            Err(error) => Err(error),
-        }
-    }
-}
-
-/// Implements hashing traits for a type.
-///
-/// This macro implements the necessary traits to allow a type to be hashed using
-/// various algorithms (SHA256, Keccak256, etc).
-#[macro_export]
-macro_rules! hashable {
-    ($x:ty) => {
-        $crate::impl_keccak256_from_as_bytes!($x);
-        $crate::impl_sha256_from_as_bytes!($x);
-        $crate::impl_keccak384_from_as_bytes!($x);
-        $crate::impl_ripemd160_from_as_bytes!($x);
-    };
-}
-
-impl TryFrom<&Hash> for Bytes {
+impl TryFrom<&Hash> for ByteVec {
     type Error = SerialiseError;
     fn try_from(value: &Hash) -> Result<Self, Self::Error> {
         match value.try_as_bytes() {
-            Ok(bytes) => Ok(Self::new(StructType::HASH, bytes)),
+            Ok(bytes) => Ok(Self::new(bytes)),
             Err(error) => Err(error),
         }
     }
 }
 
-impl TryFrom<Bytes> for Hash {
+impl TryFrom<ByteVec> for Hash {
     type Error = SerialiseError;
-    fn try_from(value: Bytes) -> Result<Self, Self::Error> {
+    fn try_from(value: ByteVec) -> Result<Self, Self::Error> {
         match Self::try_from_bytes(&value.get_bytes()) {
             Ok(hash) => Ok(hash),
             Err(err) => Err(err),
