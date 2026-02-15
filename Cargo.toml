@@ -1,0 +1,25 @@
+[package]
+name = "slahasher"
+version = "0.1.0"
+edition = "2024"
+description = "Hashing functions"
+license = "MIT"
+hompage = "https://github.com/beamvex/slahasher"
+authors = ["Robert Forster <robert.forster@beamvex.com>"]
+repository = "https://github.com/beamvex/slahasher"
+documentation = "https://docs.rs/slahasher"
+
+[lib]
+test = true
+
+[dependencies]
+slogger = "0.1.1"
+base_xx = "0.2.0"
+chrono = "0.4.34"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+allow-expect-in-tests = "allow"
+
+
