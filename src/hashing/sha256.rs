@@ -67,7 +67,7 @@ mod tests {
 
     use slogger::debug;
 
-    use base_xx::serialise::{Base36, Bytes, SerialString};
+    use base_xx::serialise::{Base36, ByteVec, EncodedString};
 
     use super::*;
 
@@ -75,9 +75,9 @@ mod tests {
     pub fn test_sha256() {
         let test = b"this is a really good test";
         let hash: Hash = Sha256::from_bytes(test).into();
-        let bytes: Bytes = (&hash).try_into().unwrap();
+        let bytes: ByteVec = (&hash).try_into().unwrap();
         let base36: Base36 = bytes.try_into().unwrap();
-        let serialised: SerialString = base36.try_into().unwrap();
+        let serialised: EncodedString = base36.try_into().unwrap();
 
         assert!(hash.verify(test));
         debug!("sha256 {serialised}");
