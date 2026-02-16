@@ -2,11 +2,11 @@
 //use crate::hashing::Keccak384;
 //use crate::hashing::Ripemd160;
 use crate::hashing::Sha256;
-use base_xx::serialise::Base36;
-use base_xx::serialise::ByteVec;
+
 use base_xx::serialise::EncodedString;
 use base_xx::serialise::Encoding;
 use base_xx::serialise::SerialiseError;
+use base_xx::serialise::byte_vec::ByteVec;
 
 use crate::hashing::HashAlgorithm;
 
@@ -88,6 +88,38 @@ impl Hash {
             }
         }
     }
+
+    /// Encodes this hash using the specified `Encoding`.
+    ///
+    /// # Parameters
+    /// * `encoding` - The encoding to use when encoding this hash.
+    ///
+    /// # Returns
+    /// A `Result` containing the encoded string if successful, or a `SerialiseError` if an error occurs.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If the specified encoding is unsupported or an error occurs during serialisation.
+    pub fn try_encode(&self, encoding: Encoding) -> Result<EncodedString, SerialiseError> {
+        match encoding {
+            Encoding::Base36 => self.try_encode_base36(),
+            _ => Err(SerialiseError::new("Unsupported encoding".to_string())),
+        }
+    }
+
+    /// Encodes this hash as a Base36 string.
+    ///
+    /// # Returns
+    /// A `Result` containing the encoded string if successful, or a `SerialiseError` if an error occurs.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If an error occurs during serialisation
+    #[must_use = "The result of this function is a `Result` containing the encoded string if successful, or a `SerialiseError` if an error occurs."]
+    pub fn try_encode_base36(&self) -> Result<EncodedString, SerialiseError> {
+        match ByteVec::try_from(self) {
+            Err(error) => Err(error),
+            Ok(byte_vec) => byte_vec.try_encode(Encoding::Base36),
+        }
+    }
 }
 
 impl TryFrom<&Hash> for ByteVec {
@@ -123,16 +155,11 @@ mod tests {
         let bytes: Vec<u8> = vec![1, 2, 3];
         let hash: Hash = Sha256::from_bytes(&bytes).into();
 
-        match hash.try_into_serialstring(SerialiseType::Base36) {
+        match hash.try_encode(Encoding::Base36) {
             Ok(hash_ss) => {
                 let hash_str = hash_ss.get_string();
                 slogger::debug!("hash: {hash_str}");
                 slogger::debug!("hash debug: {hash:?}");
-
-                match Hash::try_from_serial_string(hash_ss) {
-                    Ok(hash) => slogger::debug!("hash debug: {hash:?}"),
-                    Err(error) => slogger::debug!("hash error: {error:?}"),
-                }
             }
             Err(error) => slogger::debug!("serialstring error: {error:?}"),
         }
