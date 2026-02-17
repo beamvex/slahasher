@@ -1,4 +1,4 @@
-use base_xx::serialise::SerialiseError;
+use base_xx::SerialiseError;
 
 /// Supported cryptographic hash algorithms.
 ///

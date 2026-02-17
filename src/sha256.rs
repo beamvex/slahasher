@@ -1,4 +1,4 @@
-use crate::hashing::{Hash, HashAlgorithm};
+use crate::{Hash, HashAlgorithm};
 use sha2::{Digest, Sha256 as Sha256Impl};
 
 /// SHA-256 hash implementation.
@@ -67,7 +67,7 @@ mod tests {
 
     use slogger::debug;
 
-    use base_xx::serialise::{Base36, ByteVec, EncodedString};
+    use base_xx::{Base36, ByteVec, EncodedString};
 
     use super::*;
 

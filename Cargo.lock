@@ -19,9 +19,9 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "base_xx"
-version = "0.2.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52f4c368b00e51f07816fb34c053f755d87fe83b546577a90bc1194266a908fd"
+checksum = "7b9a4dcc06cd4f9c0927d74285e7a4148db20f317a1bce7ba7f8dcefd410561a"
 dependencies = [
  "chrono",
  "slogger",
@@ -241,9 +241,12 @@ dependencies = [
 
 [[package]]
 name = "slogger"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7974dbdaad5153e94aaf099d534c771a0cbfdd864866ea96c5b45be405fb801"
+checksum = "1898ad660a5504a38697df68d29e3a490a81bc91ee4764b3407068139f33a97b"
+dependencies = [
+ "chrono",
+]
 
 [[package]]
 name = "syn"
