@@ -55,11 +55,10 @@ impl Hash {
     /// # Returns
     /// `true` if the hash of the provided bytes matches this hash, `false` otherwise
     #[must_use]
-    pub fn verify(&self, bytes: &[u8]) -> bool {
+    pub fn verify(&self, bytes: &ByteVec) -> bool {
         match self.algorithm {
             HashAlgorithm::SHA256 => {
-                let hash: Self = Sha256::from_bytes(bytes).into();
-                hash.get_bytes() == self.get_bytes()
+                Self::try_hash_sha256(bytes).is_ok_and(|hash| hash.get_bytes() == self.get_bytes())
             }
             HashAlgorithm::KECCAK256 | HashAlgorithm::KECCAK384 | HashAlgorithm::RIPEMD160 => {
                 //let hash: Self = Ripemd160::from_bytes(bytes).into();
@@ -90,7 +89,9 @@ impl Hash {
             }
         }
     }
-
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If the hash algorithm is not supported
     pub fn try_hash(byte_vec: &ByteVec, algorithm: HashAlgorithm) -> Result<Self, SerialiseError> {
         match algorithm {
             HashAlgorithm::SHA256 => Self::try_hash_sha256(byte_vec),
@@ -100,11 +101,16 @@ impl Hash {
         }
     }
 
+    /// Computes a SHA-256 hash of the provided bytes.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
+    ///   bytes to the internal SHA-256 representation)
     pub fn try_hash_sha256(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
-        Ok(Self::new(
-            HashAlgorithm::SHA256,
-            Sha256::from_bytes(byte_vec.get_bytes()).get_bytes(),
-        ))
+        match Sha256::try_from(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
     }
 }
 

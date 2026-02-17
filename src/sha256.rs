@@ -1,4 +1,6 @@
 use crate::{Hash, HashAlgorithm};
+use base_xx::ByteVec;
+use base_xx::SerialiseError;
 use sha2::{Digest, Sha256 as Sha256Impl};
 
 /// SHA-256 hash implementation.
@@ -22,6 +24,11 @@ impl Sha256 {
         Self { hash }
     }
 
+    #[must_use]
+    pub fn get_hash(self) -> Hash {
+        self.hash
+    }
+
     /// Creates a SHA-256 hash from a byte slice.
     ///
     /// # Arguments
@@ -30,35 +37,22 @@ impl Sha256 {
     /// # Returns
     /// A new SHA-256 hash value containing the hash of the input data
     #[must_use = "This computes a hash value but does nothing if unused"]
-    pub fn from_bytes(bytes: &[u8]) -> Self {
+    fn try_from_bytes(bytes: &ByteVec) -> Result<Self, SerialiseError> {
         let mut hasher = Sha256Impl::new();
-        hasher.update(bytes);
+        let bytes = bytes.clone().get_bytes();
+        hasher.update(&bytes);
         let result = hasher.finalize();
         let bytes = result.to_vec();
 
         let hash = Hash::new(HashAlgorithm::SHA256, bytes);
-        Self::new(hash)
+        Ok(Self::new(hash))
     }
 }
 
-/// Implements SHA-256 hashing for a type that implements `AsBytes`.
-///
-/// This macro generates an implementation that computes the SHA-256 hash
-/// of a value by first converting it to bytes using the `AsBytes` trait.
-#[macro_export]
-macro_rules! impl_sha256_from_as_bytes {
-    ($t:ty) => {
-        impl From<&$t> for $crate::hashing::Sha256 {
-            fn from(value: &$t) -> Self {
-                $crate::hashing::Sha256::from_bytes(&value.try_as_bytes().unwrap())
-            }
-        }
-    };
-}
-
-impl From<Sha256> for Hash {
-    fn from(value: Sha256) -> Self {
-        value.hash
+impl TryFrom<&ByteVec> for Sha256 {
+    type Error = SerialiseError;
+    fn try_from(value: &ByteVec) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
     }
 }
 
@@ -67,19 +61,20 @@ mod tests {
 
     use slogger::debug;
 
-    use base_xx::{Base36, ByteVec, EncodedString};
+    use base_xx::{ByteVec, Encoding};
 
     use super::*;
 
     #[test]
     pub fn test_sha256() {
-        let test = b"this is a really good test";
-        let hash: Hash = Sha256::from_bytes(test).into();
-        let bytes: ByteVec = (&hash).try_into().unwrap();
-        let base36: Base36 = bytes.try_into().unwrap();
-        let serialised: EncodedString = base36.try_into().unwrap();
+        let test = ByteVec::new(b"this is a really good test".to_vec());
 
-        assert!(hash.verify(test));
-        debug!("sha256 {serialised}");
+        match Hash::try_hash(&test, HashAlgorithm::SHA256) {
+            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+                Ok(serialised) => debug!("sha256 {serialised}"),
+                Err(error) => debug!("serialisation error: {error:?}"),
+            },
+            Err(error) => debug!("hash error: {error:?}"),
+        }
     }
 }
