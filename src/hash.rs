@@ -127,7 +127,7 @@ impl TryFrom<&Hash> for ByteVec {
 impl TryFrom<ByteVec> for Hash {
     type Error = SerialiseError;
     fn try_from(value: ByteVec) -> Result<Self, Self::Error> {
-        match Self::try_from_bytes(&value.get_bytes()) {
+        match Self::try_from_bytes(value.get_bytes()) {
             Ok(hash) => Ok(hash),
             Err(err) => Err(err),
         }

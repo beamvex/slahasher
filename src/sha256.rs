@@ -39,10 +39,13 @@ impl Sha256 {
     #[must_use = "This computes a hash value but does nothing if unused"]
     fn try_from_bytes(bytes: &ByteVec) -> Result<Self, SerialiseError> {
         let mut hasher = Sha256Impl::new();
-        let bytes = bytes.clone().get_bytes();
-        hasher.update(&bytes);
+        let bytes = bytes.get_bytes();
+        hasher.update(bytes);
         let result = hasher.finalize();
         let bytes = result.to_vec();
+        if bytes.len() != 32 {
+            return Err(SerialiseError::new("Invalid hash length".to_string()));
+        }
 
         let hash = Hash::new(HashAlgorithm::SHA256, bytes);
         Ok(Self::new(hash))
