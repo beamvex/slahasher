@@ -90,6 +90,22 @@ impl Hash {
             }
         }
     }
+
+    pub fn try_hash(byte_vec: &ByteVec, algorithm: HashAlgorithm) -> Result<Self, SerialiseError> {
+        match algorithm {
+            HashAlgorithm::SHA256 => Self::try_hash_sha256(byte_vec),
+            HashAlgorithm::KECCAK256 | HashAlgorithm::KECCAK384 | HashAlgorithm::RIPEMD160 => Err(
+                SerialiseError::new("Unsupported hash algorithm".to_string()),
+            ),
+        }
+    }
+
+    pub fn try_hash_sha256(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
+        Ok(Self::new(
+            HashAlgorithm::SHA256,
+            Sha256::from_bytes(byte_vec.get_bytes()).get_bytes(),
+        ))
+    }
 }
 
 impl TryFrom<&Hash> for ByteVec {
@@ -119,23 +135,22 @@ decodable!(Hash);
 mod tests {
 
     use super::*;
-    //use crate::hashing::Keccak256;
-    //use crate::hashing::Keccak384;
-    use crate::Sha256;
 
     #[test]
     fn test_hash() {
-        let bytes: Vec<u8> = vec![1, 2, 3];
-        let hash: Hash = Sha256::from_bytes(&bytes).into();
-
-        match hash.try_encode(Encoding::Base36) {
-            Ok(hash_ss) => {
-                let hash_str = hash_ss.get_string();
-                slogger::debug!("hash: {hash_str}");
-                slogger::debug!("hash debug: {hash:?}");
-            }
-            Err(error) => slogger::debug!("serialstring error: {error:?}"),
+        let bytes = ByteVec::new(vec![1, 2, 3]);
+        match Hash::try_hash(&bytes, HashAlgorithm::SHA256) {
+            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+                Ok(hash_ss) => {
+                    let hash_str = hash_ss.get_string();
+                    slogger::debug!("hash: {hash_str}");
+                    slogger::debug!("hash debug: {hash:?}");
+                }
+                Err(error) => slogger::debug!("serialstring error: {error:?}"),
+            },
+            Err(error) => slogger::debug!("hash error: {error:?}"),
         }
+
         /*
         let hash_str: SerialString = Base36::try_from(Bytes::try_from(&hash).unwrap())
             .unwrap()
