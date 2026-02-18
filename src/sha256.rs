@@ -64,6 +64,7 @@ mod tests {
 
     use slogger::debug;
 
+    use base_xx::byte_vec::Encodable;
     use base_xx::{ByteVec, Encoding};
 
     use super::*;
@@ -73,7 +74,7 @@ mod tests {
         let test = ByteVec::new(b"this is a really good test".to_vec());
 
         match Hash::try_hash(&test, HashAlgorithm::SHA256) {
-            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
                 Ok(serialised) => debug!("sha256 {serialised}"),
                 Err(error) => debug!("serialisation error: {error:?}"),
             },

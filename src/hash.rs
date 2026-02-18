@@ -4,11 +4,9 @@
 use crate::Sha256;
 
 use base_xx::ByteVec;
-use base_xx::EncodedString;
-use base_xx::Encoding;
 use base_xx::SerialiseError;
-use base_xx::decodable;
-use base_xx::encodable;
+use base_xx::byte_vec::Encodable;
+use base_xx::encoded_string::Decodable;
 
 use crate::HashAlgorithm;
 
@@ -134,19 +132,22 @@ impl TryFrom<ByteVec> for Hash {
     }
 }
 
-encodable!(Hash);
-decodable!(Hash);
+impl Encodable<Self> for Hash {}
+impl Decodable for Hash {}
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
 
+    use base_xx::Encoding;
+    use base_xx::byte_vec::Encodable;
+
     #[test]
     fn test_hash() {
         let bytes = ByteVec::new(vec![1, 2, 3]);
         match Hash::try_hash(&bytes, HashAlgorithm::SHA256) {
-            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
                 Ok(hash_ss) => {
                     let hash_str = hash_ss.get_string();
                     slogger::debug!("hash: {hash_str}");
