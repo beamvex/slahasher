@@ -1,3 +1,6 @@
+use crate::Keccak256;
+use crate::Keccak384;
+use crate::Ripemd160;
 //use crate::hashing::Keccak256;
 //use crate::hashing::Keccak384;
 //use crate::hashing::Ripemd160;
@@ -93,9 +96,9 @@ impl Hash {
     pub fn try_hash(byte_vec: &ByteVec, algorithm: HashAlgorithm) -> Result<Self, SerialiseError> {
         match algorithm {
             HashAlgorithm::SHA256 => Self::try_hash_sha256(byte_vec),
-            HashAlgorithm::KECCAK256 | HashAlgorithm::KECCAK384 | HashAlgorithm::RIPEMD160 => Err(
-                SerialiseError::new("Unsupported hash algorithm".to_string()),
-            ),
+            HashAlgorithm::KECCAK256 => Self::try_hash_keccak256(byte_vec),
+            HashAlgorithm::KECCAK384 => Self::try_hash_keccak384(byte_vec),
+            HashAlgorithm::RIPEMD160 => Self::try_hash_ripemd160(byte_vec),
         }
     }
 
@@ -106,6 +109,42 @@ impl Hash {
     ///   bytes to the internal SHA-256 representation)
     pub fn try_hash_sha256(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
         match Sha256::try_from(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Computes a SHA-256 hash of the provided bytes.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
+    ///   bytes to the internal SHA-256 representation)
+    pub fn try_hash_keccak256(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
+        match Keccak256::try_from(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Computes a SHA-256 hash of the provided bytes.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
+    ///   bytes to the internal SHA-256 representation)
+    pub fn try_hash_keccak384(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
+        match Keccak384::try_from(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Computes a SHA-256 hash of the provided bytes.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
+    ///   bytes to the internal SHA-256 representation)
+    pub fn try_hash_ripemd160(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
+        match Ripemd160::try_from(byte_vec) {
             Ok(hash) => Ok(hash.get_hash()),
             Err(error) => Err(error),
         }
@@ -132,7 +171,7 @@ impl TryFrom<ByteVec> for Hash {
     }
 }
 
-impl Encodable<Self> for Hash {}
+impl Encodable for Hash {}
 impl Decodable for Hash {}
 
 #[cfg(test)]
@@ -152,6 +191,10 @@ mod tests {
                     let hash_str = hash_ss.get_string();
                     slogger::debug!("hash: {hash_str}");
                     slogger::debug!("hash debug: {hash:?}");
+                    assert_eq!(
+                        hash_str,
+                        "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
+                    );
                 }
                 Err(error) => slogger::debug!("serialstring error: {error:?}"),
             },

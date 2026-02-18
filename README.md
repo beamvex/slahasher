@@ -1,13 +1,14 @@
 # slahasher
 
-A Rust library providing hashing functions, with a focus on SHA-256 implementation.
+A Rust library providing hashing functions.
 
 ## Features
 
-- SHA-256 hashing implementation
-- Integration with slogger for logging
+- SHA-256
+- Keccak-256
+- Keccak-384
+- RIPEMD-160
 - Base encoding support via base_xx
-- Chronological timestamping capabilities
 
 ## Installation
 
@@ -15,7 +16,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slahasher = "0.1.1"
+slahasher = "0.2.0"
 ```
 
 ## Usage

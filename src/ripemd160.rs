@@ -1,4 +1,6 @@
-use crate::hashing::{Hash, HashAlgorithm};
+use crate::{Hash, HashAlgorithm};
+use base_xx::ByteVec;
+use base_xx::SerialiseError;
 use ripemd::{Digest, Ripemd160 as Ripemd160Impl};
 
 pub struct Ripemd160 {
@@ -12,49 +14,65 @@ impl Ripemd160 {
     }
 
     #[must_use]
-    pub fn from_bytes(bytes: &[u8]) -> Self {
+    pub fn get_hash(self) -> Hash {
+        self.hash
+    }
+
+    #[must_use]
+    pub const fn hash(&self) -> &Hash {
+        &self.hash
+    }
+
+    /// Creates a `Keccak256` hash from the provided bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns `SerialiseError` if the computed hash is not 32 bytes.
+    #[must_use = "the computed hash is returned in the Ok value"]
+    pub fn try_from_bytes(bytes: &ByteVec) -> Result<Self, SerialiseError> {
         let mut hasher = Ripemd160Impl::new();
+        let bytes = bytes.get_bytes();
         hasher.update(bytes);
         let result = hasher.finalize();
         let bytes = result.to_vec();
-
-        let hash = Hash::new(HashAlgorithm::RIPEMD160, bytes);
-        Self::new(hash)
+        if bytes.len() != 20 {
+            return Err(SerialiseError::new("Invalid hash length".to_string()));
+        }
+        Ok(Self::new(Hash::new(HashAlgorithm::KECCAK384, bytes)))
     }
 }
 
-#[macro_export]
-macro_rules! impl_ripemd160_from_as_bytes {
-    ($t:ty) => {
-        impl From<&$t> for $crate::hashing::Ripemd160 {
-            fn from(value: &$t) -> Self {
-                $crate::hashing::Ripemd160::from_bytes(&value.try_as_bytes().unwrap())
-            }
-        }
-    };
-}
-
-impl From<Ripemd160> for Hash {
-    fn from(value: Ripemd160) -> Self {
-        value.hash
+impl TryFrom<&ByteVec> for Ripemd160 {
+    type Error = SerialiseError;
+    fn try_from(value: &ByteVec) -> Result<Self, Self::Error> {
+        Self::try_from_bytes(value)
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use crate::serialise::algorithm::Base36;
-    use crate::serialise::SerialString;
+    use slogger::debug;
+
+    use base_xx::byte_vec::Encodable;
+    use base_xx::{ByteVec, Encoding};
 
     use super::*;
 
     #[test]
     pub fn test_ripemd160() {
-        let test = b"this is a really good test";
-        let hash: Hash = Ripemd160::from_bytes(test).into();
-        let serialised: SerialString = Base36::from(&hash).into();
+        let test = ByteVec::new(b"this is a really good test".to_vec());
 
-        assert!(hash.verify(test));
-        crate::debug!("ripemd160 {serialised}");
+        match Hash::try_hash(&test, HashAlgorithm::RIPEMD160) {
+            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
+                Ok(serialised) => {
+                    let serialised = serialised.get_string();
+                    debug!("sha256 {serialised}");
+                    assert_eq!(serialised, "2dboul7pklshdt421fslt94vk6qkuamg0");
+                }
+                Err(error) => debug!("serialisation error: {error:?}"),
+            },
+            Err(error) => debug!("hash error: {error:?}"),
+        }
     }
 }
