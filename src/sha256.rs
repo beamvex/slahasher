@@ -75,7 +75,14 @@ mod tests {
 
         match Hash::try_hash(&test, HashAlgorithm::SHA256) {
             Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
-                Ok(serialised) => debug!("sha256 {serialised}"),
+                Ok(serialised) => {
+                    let serialised = serialised.get_string();
+                    debug!("sha256 {serialised}");
+                    assert_eq!(
+                        serialised,
+                        "i00ra1fzykfw5srqpoz7i14awapnka0jlewtkgcgtkgaaimyqyp"
+                    );
+                }
                 Err(error) => debug!("serialisation error: {error:?}"),
             },
             Err(error) => debug!("hash error: {error:?}"),
