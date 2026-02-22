@@ -33,7 +33,10 @@ impl Ripemd160 {
         let mut hasher = Ripemd160Impl::new();
         let bytes = bytes.get_bytes();
         hasher.update(bytes);
-        let result = hasher.finalize();
+        let clone = hasher.clone();
+        let result = clone.finalize();
+
+        let _result2 = hasher.finalize();
         let bytes = result.to_vec();
         if bytes.len() != 20 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
