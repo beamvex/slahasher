@@ -1,5 +1,6 @@
 use crate::Keccak256;
 use crate::Keccak384;
+use crate::Keccak512;
 use crate::Ripemd160;
 //use crate::hashing::Keccak256;
 //use crate::hashing::Keccak384;
@@ -61,11 +62,14 @@ impl Hash {
             HashAlgorithm::SHA256 => {
                 Self::try_hash_sha256(bytes).is_ok_and(|hash| hash.get_bytes() == self.get_bytes())
             }
-            HashAlgorithm::KECCAK256 | HashAlgorithm::KECCAK384 | HashAlgorithm::RIPEMD160 => {
-                //let hash: Self = Ripemd160::from_bytes(bytes).into();
-                //hash.get_bytes() == self.get_bytes()
-                false
-            }
+            HashAlgorithm::KECCAK512 => Self::try_hash_keccak512(bytes)
+                .is_ok_and(|hash| hash.get_bytes() == self.get_bytes()),
+            HashAlgorithm::KECCAK256 => Self::try_hash_keccak256(bytes)
+                .is_ok_and(|hash| hash.get_bytes() == self.get_bytes()),
+            HashAlgorithm::KECCAK384 => Self::try_hash_keccak384(bytes)
+                .is_ok_and(|hash| hash.get_bytes() == self.get_bytes()),
+            HashAlgorithm::RIPEMD160 => Self::try_hash_ripemd160(bytes)
+                .is_ok_and(|hash| hash.get_bytes() == self.get_bytes()),
         }
     }
 
@@ -98,6 +102,7 @@ impl Hash {
             HashAlgorithm::SHA256 => Self::try_hash_sha256(byte_vec),
             HashAlgorithm::KECCAK256 => Self::try_hash_keccak256(byte_vec),
             HashAlgorithm::KECCAK384 => Self::try_hash_keccak384(byte_vec),
+            HashAlgorithm::KECCAK512 => Self::try_hash_keccak512(byte_vec),
             HashAlgorithm::RIPEMD160 => Self::try_hash_ripemd160(byte_vec),
         }
     }
@@ -133,6 +138,18 @@ impl Hash {
     ///   bytes to the internal SHA-256 representation)
     pub fn try_hash_keccak384(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
         match Keccak384::try_from(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Computes a SHA-256 hash of the provided bytes.
+    ///
+    /// # Errors
+    /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
+    ///   bytes to the internal SHA-256 representation)
+    pub fn try_hash_keccak512(byte_vec: &ByteVec) -> Result<Self, SerialiseError> {
+        match Keccak512::try_from(byte_vec) {
             Ok(hash) => Ok(hash.get_hash()),
             Err(error) => Err(error),
         }

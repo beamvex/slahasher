@@ -10,6 +10,9 @@ pub mod keccak256;
 /// Keccak-384 hash implementation.
 pub mod keccak384;
 
+/// Keccak-512 hash implementation.
+pub mod keccak512;
+
 /// RIPEMD-160 hash implementation.
 pub mod ripemd160;
 
@@ -20,5 +23,6 @@ pub use hash::Hash;
 pub use hash_algorithm::HashAlgorithm;
 pub use keccak256::Keccak256;
 pub use keccak384::Keccak384;
+pub use keccak512::Keccak512;
 pub use ripemd160::Ripemd160;
 pub use sha256::Sha256;
