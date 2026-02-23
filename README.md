@@ -16,7 +16,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slahasher = "0.2.1"
+slahasher = "0.2.2"
 ```
 
 ## Usage
