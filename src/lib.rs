@@ -4,6 +4,9 @@ pub mod hash;
 /// Supported hash algorithms.
 pub mod hash_algorithm;
 
+/// Hasher trait.
+pub mod hasher;
+
 /// Keccak-256 hash implementation.
 pub mod keccak256;
 
@@ -21,6 +24,7 @@ pub mod sha256;
 
 pub use hash::Hash;
 pub use hash_algorithm::HashAlgorithm;
+pub use hasher::Hasher;
 pub use keccak256::Keccak256;
 pub use keccak384::Keccak384;
 pub use keccak512::Keccak512;

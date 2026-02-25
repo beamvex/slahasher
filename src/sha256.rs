@@ -1,3 +1,4 @@
+use crate::Hasher;
 use crate::{Hash, HashAlgorithm};
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
@@ -56,6 +57,15 @@ impl TryFrom<&ByteVec> for Sha256 {
     type Error = SerialiseError;
     fn try_from(value: &ByteVec) -> Result<Self, Self::Error> {
         Self::try_from_bytes(value)
+    }
+}
+
+impl Hasher for Sha256 {
+    fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError> {
+        match Self::try_from_bytes(byte_vec) {
+            Ok(hash) => Ok(hash.get_hash()),
+            Err(error) => Err(error),
+        }
     }
 }
 
