@@ -4,14 +4,15 @@ use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use sha3::{Digest, Keccak512 as Keccak512Impl};
 
+/// Keccak-512 hash implementation.
 pub struct Keccak512 {}
 
 impl Keccak512 {
-    /// Creates a `Keccak256` hash from the provided bytes.
+    /// Creates a `Keccak512` hash from the provided bytes.
     ///
     /// # Errors
     ///
-    /// Returns `SerialiseError` if the computed hash is not 32 bytes.
+    /// Returns `SerialiseError` if the computed hash is not 64 bytes.
     #[must_use = "the computed hash is returned in the Ok value"]
     pub fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
         let mut hasher = Keccak512Impl::new();

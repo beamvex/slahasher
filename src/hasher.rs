@@ -2,6 +2,7 @@ use crate::Hash;
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
 
+/// A hash function implementation.
 pub trait Hasher {
     /// Computes a hash of the provided bytes.
     ///

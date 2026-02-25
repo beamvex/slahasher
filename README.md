@@ -7,6 +7,7 @@ A Rust library providing hashing functions.
 - SHA-256
 - Keccak-256
 - Keccak-384
+- Keccak-512
 - RIPEMD-160
 - Base encoding support via base_xx
 
@@ -16,7 +17,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slahasher = "0.2.2"
+slahasher = "0.3.0"
 ```
 
 ## Usage

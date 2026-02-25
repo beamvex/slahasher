@@ -96,9 +96,10 @@ impl Hash {
             }
         }
     }
+    /// Computes a hash of the provided bytes using the given algorithm.
     ///
     /// # Errors
-    /// * `SerialiseError` - If the hash algorithm is not supported
+    /// Returns `SerialiseError` if hashing fails.
     pub fn try_hash(byte_vec: &ByteVec, algorithm: HashAlgorithm) -> Result<Self, SerialiseError> {
         match algorithm {
             HashAlgorithm::SHA256 => Sha256::try_hash(byte_vec),

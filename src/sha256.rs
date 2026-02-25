@@ -18,6 +18,9 @@ impl Sha256 {
     /// # Arguments
     /// * `bytes` - The data to hash
     ///
+    /// # Errors
+    ///
+    /// Returns `SerialiseError` if the computed hash is not 32 bytes.
     /// # Returns
     /// A new SHA-256 hash value containing the hash of the input data
     #[must_use = "This computes a hash value but does nothing if unused"]

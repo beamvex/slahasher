@@ -4,6 +4,7 @@ use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use sha3::{Digest, Keccak256 as Keccak256Impl};
 
+/// Keccak-256 hash implementation.
 pub struct Keccak256 {}
 
 impl Keccak256 {

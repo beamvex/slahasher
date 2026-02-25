@@ -4,14 +4,15 @@ use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use ripemd::{Digest, Ripemd160 as Ripemd160Impl};
 
+/// RIPEMD-160 hash implementation.
 pub struct Ripemd160 {}
 
 impl Ripemd160 {
-    /// Creates a `Keccak256` hash from the provided bytes.
+    /// Creates a `Ripemd160` hash from the provided bytes.
     ///
     /// # Errors
     ///
-    /// Returns `SerialiseError` if the computed hash is not 32 bytes.
+    /// Returns `SerialiseError` if the computed hash is not 20 bytes.
     #[must_use = "the computed hash is returned in the Ok value"]
     pub fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
         let mut hasher = Ripemd160Impl::new();
@@ -54,7 +55,7 @@ mod tests {
                 Ok(serialised) => {
                     let serialised = serialised.get_string();
                     debug!("sha256 {serialised}");
-                    assert_eq!(serialised, "2dboul7pklshdt421fslt94vk6qkuamg0");
+                    assert_eq!(serialised, "2ezhwv4qbrkvyajcac6mcf44fjby0igww");
                 }
                 Err(error) => debug!("serialisation error: {error:?}"),
             },

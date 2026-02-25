@@ -1,4 +1,8 @@
 #![deny(missing_docs)]
+//! Hashing functions and hash value types.
+//!
+//! This crate provides implementations of a small set of cryptographic hash algorithms and a
+//! common [`Hash`] type for working with computed digests.
 /// Core hash value type and traits.
 pub mod hash;
 
