@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 /// Core hash value type and traits.
 pub mod hash;
 

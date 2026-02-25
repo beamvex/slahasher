@@ -10,26 +10,9 @@ use sha2::{Digest, Sha256 as Sha256Impl};
 /// SHA-256 is a cryptographic hash function that produces a 256-bit (32-byte)
 /// hash value.
 #[derive(Debug)]
-pub struct Sha256 {
-    /// The raw bytes of the hash value
-    hash: Hash,
-}
+pub struct Sha256 {}
 
 impl Sha256 {
-    /// Creates a new SHA-256 hash value.
-    ///
-    /// # Arguments
-    /// * `hash` - The raw hash value
-    #[must_use = "This creates a new hash value but does nothing if unused"]
-    pub const fn new(hash: Hash) -> Self {
-        Self { hash }
-    }
-
-    #[must_use]
-    pub fn get_hash(self) -> Hash {
-        self.hash
-    }
-
     /// Creates a SHA-256 hash from a byte slice.
     ///
     /// # Arguments
@@ -38,7 +21,7 @@ impl Sha256 {
     /// # Returns
     /// A new SHA-256 hash value containing the hash of the input data
     #[must_use = "This computes a hash value but does nothing if unused"]
-    fn try_from_bytes(bytes: &ByteVec) -> Result<Self, SerialiseError> {
+    fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
         let mut hasher = Sha256Impl::new();
         let bytes = bytes.get_bytes();
         hasher.update(bytes);
@@ -49,23 +32,13 @@ impl Sha256 {
         }
 
         let hash = Hash::new(HashAlgorithm::SHA256, bytes);
-        Ok(Self::new(hash))
-    }
-}
-
-impl TryFrom<&ByteVec> for Sha256 {
-    type Error = SerialiseError;
-    fn try_from(value: &ByteVec) -> Result<Self, Self::Error> {
-        Self::try_from_bytes(value)
+        Ok(hash)
     }
 }
 
 impl Hasher for Sha256 {
     fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError> {
-        match Self::try_from_bytes(byte_vec) {
-            Ok(hash) => Ok(hash.get_hash()),
-            Err(error) => Err(error),
-        }
+        Self::try_from_bytes(byte_vec)
     }
 }
 

@@ -1,35 +1,19 @@
+use crate::Hasher;
 use crate::{Hash, HashAlgorithm};
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use sha3::{Digest, Keccak256 as Keccak256Impl};
 
-pub struct Keccak256 {
-    hash: Hash,
-}
+pub struct Keccak256 {}
 
 impl Keccak256 {
-    #[must_use]
-    pub const fn new(hash: Hash) -> Self {
-        Self { hash }
-    }
-
-    #[must_use]
-    pub fn get_hash(self) -> Hash {
-        self.hash
-    }
-
-    #[must_use]
-    pub const fn hash(&self) -> &Hash {
-        &self.hash
-    }
-
     /// Creates a `Keccak256` hash from the provided bytes.
     ///
     /// # Errors
     ///
     /// Returns `SerialiseError` if the computed hash is not 32 bytes.
     #[must_use = "the computed hash is returned in the Ok value"]
-    pub fn try_from_bytes(bytes: &ByteVec) -> Result<Self, SerialiseError> {
+    pub fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
         let mut hasher = Keccak256Impl::new();
         let bytes = bytes.get_bytes();
         hasher.update(bytes);
@@ -38,14 +22,13 @@ impl Keccak256 {
         if bytes.len() != 32 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Self::new(Hash::new(HashAlgorithm::KECCAK256, bytes)))
+        Ok(Hash::new(HashAlgorithm::KECCAK256, bytes))
     }
 }
 
-impl TryFrom<&ByteVec> for Keccak256 {
-    type Error = SerialiseError;
-    fn try_from(value: &ByteVec) -> Result<Self, Self::Error> {
-        Self::try_from_bytes(value)
+impl Hasher for Keccak256 {
+    fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError> {
+        Self::try_from_bytes(byte_vec)
     }
 }
 
