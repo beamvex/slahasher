@@ -27,8 +27,12 @@ pub mod ripemd160;
 /// SHA-256 hash implementation.
 pub mod sha256;
 
+/// hashable trait
+pub mod hashable;
+
 pub use hash::Hash;
 pub use hash_algorithm::HashAlgorithm;
+pub use hashable::Hashable;
 pub use hasher::Hasher;
 pub use keccak256::Keccak256;
 pub use keccak384::Keccak384;
