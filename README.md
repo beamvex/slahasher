@@ -17,7 +17,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slahasher = "0.3.0"
+slahasher = "0.3.1"
 ```
 
 ## Usage
