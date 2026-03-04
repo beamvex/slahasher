@@ -1,6 +1,6 @@
 [package]
 name = "slahasher"
-version = "0.3.1"
+version = "0.3.12"
 edition = "2024"
 description = "Hashing functions"
 license = "MIT"
