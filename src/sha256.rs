@@ -34,7 +34,7 @@ impl Sha256 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
 
-        let hash = Hash::new(HashAlgorithm::SHA256, bytes);
+        let hash = Hash::new(HashAlgorithm::SHA256, ByteVec::new(bytes));
         Ok(hash)
     }
 }

@@ -23,7 +23,7 @@ impl Keccak256 {
         if bytes.len() != 32 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Hash::new(HashAlgorithm::KECCAK256, bytes))
+        Ok(Hash::new(HashAlgorithm::KECCAK256, ByteVec::new(bytes)))
     }
 }
 
