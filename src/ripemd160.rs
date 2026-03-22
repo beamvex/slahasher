@@ -26,7 +26,7 @@ impl Ripemd160 {
         if bytes.len() != 20 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Hash::new(HashAlgorithm::RIPEMD160, bytes))
+        Ok(Hash::new(HashAlgorithm::RIPEMD160, ByteVec::new(bytes)))
     }
 }
 

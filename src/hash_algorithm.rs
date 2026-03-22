@@ -4,7 +4,7 @@ use base_xx::SerialiseError;
 ///
 /// This enum represents the different hash algorithms that can be used
 /// to create hash values in the system.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub enum HashAlgorithm {
     /// Keccak-256 hash algorithm (used in Ethereum)
     KECCAK256,

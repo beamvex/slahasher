@@ -16,12 +16,12 @@ use crate::HashAlgorithm;
 ///
 /// This type represents the result of applying a cryptographic hash function to some data.
 /// It stores both the resulting hash value and the algorithm used to create it.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd, Ord, Eq)]
 pub struct Hash {
     /// The algorithm used to create this hash
     algorithm: HashAlgorithm,
     /// The raw bytes of the hash value
-    bytes: Vec<u8>,
+    bytes: ByteVec,
 }
 
 impl Hash {
@@ -31,13 +31,13 @@ impl Hash {
     /// * `algorithm` - The hash algorithm used to create this hash
     /// * `bytes` - The raw hash value bytes
     #[must_use]
-    pub const fn new(algorithm: HashAlgorithm, bytes: Vec<u8>) -> Self {
+    pub const fn new(algorithm: HashAlgorithm, bytes: ByteVec) -> Self {
         Self { algorithm, bytes }
     }
 
     /// Returns a reference to the raw hash value bytes.
     #[must_use]
-    pub const fn get_bytes(&self) -> &Vec<u8> {
+    pub const fn get_bytes(&self) -> &ByteVec {
         &self.bytes
     }
 
@@ -82,7 +82,7 @@ impl Hash {
             Err(error) => return Err(error),
             Ok(algorithm) => bytes.push(algorithm),
         }
-        bytes.extend_from_slice(&self.bytes);
+        bytes.extend_from_slice(self.bytes.get_bytes());
         Ok(bytes)
     }
 
@@ -92,7 +92,7 @@ impl Hash {
             Err(error) => Err(error),
             Ok(algorithm) => {
                 let bytes = bytes[1..].to_vec();
-                Ok(Self::new(algorithm, bytes))
+                Ok(Self::new(algorithm, ByteVec::new(bytes)))
             }
         }
     }
