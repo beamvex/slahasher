@@ -3,6 +3,7 @@ use crate::{Hash, HashAlgorithm};
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use sha3::{Digest, Keccak256 as Keccak256Impl};
+use std::sync::Arc;
 
 /// Keccak-256 hash implementation.
 pub struct Keccak256 {}
@@ -23,7 +24,10 @@ impl Keccak256 {
         if bytes.len() != 32 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Hash::new(HashAlgorithm::KECCAK256, ByteVec::new(bytes)))
+        Ok(Hash::new(
+            HashAlgorithm::KECCAK256,
+            ByteVec::new(Arc::new(bytes)),
+        ))
     }
 }
 
@@ -38,25 +42,27 @@ mod tests {
 
     use slogger::debug;
 
-    use base_xx::byte_vec::Encodable;
     use base_xx::{ByteVec, Encoding};
 
     use super::*;
 
     #[test]
     pub fn test_keccak256() {
-        let test = ByteVec::new(b"this is a really good test".to_vec());
+        let test = ByteVec::new(Arc::new(b"this is a really good test".to_vec()));
 
         match Hash::try_hash(&test, HashAlgorithm::KECCAK256) {
-            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
-                Ok(serialised) => {
-                    let serialised = serialised.get_string();
-                    debug!("sha256 {serialised}");
-                    assert_eq!(
-                        serialised,
-                        "htrjv54adtzf7cxhi9mjeermo1dlve4g4r5tjdy61fjho90rskf"
-                    );
-                }
+            Ok(hash) => match hash.try_to_byte_vec() {
+                Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
+                    Ok(serialised) => {
+                        let serialised = serialised.get_string();
+                        debug!("sha256 {serialised}");
+                        assert_eq!(
+                            serialised,
+                            "htrjv54adtzf7cxhi9mjeermo1dlve4g4r5tjdy61fjho90rskf"
+                        );
+                    }
+                    Err(error) => debug!("serialisation error: {error:?}"),
+                },
                 Err(error) => debug!("serialisation error: {error:?}"),
             },
             Err(error) => debug!("hash error: {error:?}"),

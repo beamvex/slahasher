@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::Keccak256;
 use crate::Keccak384;
 use crate::Keccak512;
@@ -7,7 +9,6 @@ use crate::hasher::Hasher;
 
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
-use base_xx::byte_vec::Encodable;
 use base_xx::encoded_string::Decodable;
 
 use crate::HashAlgorithm;
@@ -86,13 +87,24 @@ impl Hash {
         Ok(bytes)
     }
 
+    /// Converts this hash to a `ByteVec` suitable for encoding.
+    ///
+    /// # Errors
+    /// Returns `SerialiseError` if the hash cannot be converted to bytes.
+    pub fn try_to_byte_vec(&self) -> Result<ByteVec, SerialiseError> {
+        match self.try_as_bytes() {
+            Ok(bytes) => Ok(ByteVec::new(Arc::new(bytes))),
+            Err(error) => Err(error),
+        }
+    }
+
     fn try_from_bytes(bytes: &[u8]) -> Result<Self, SerialiseError> {
         let algorithm = HashAlgorithm::try_from(bytes[0]);
         match algorithm {
             Err(error) => Err(error),
             Ok(algorithm) => {
                 let bytes = bytes[1..].to_vec();
-                Ok(Self::new(algorithm, ByteVec::new(bytes)))
+                Ok(Self::new(algorithm, ByteVec::new(Arc::new(bytes))))
             }
         }
     }
@@ -111,19 +123,9 @@ impl Hash {
     }
 }
 
-impl TryFrom<&Hash> for ByteVec {
+impl TryFrom<Arc<ByteVec>> for Hash {
     type Error = SerialiseError;
-    fn try_from(value: &Hash) -> Result<Self, Self::Error> {
-        match value.try_as_bytes() {
-            Ok(bytes) => Ok(Self::new(bytes)),
-            Err(error) => Err(error),
-        }
-    }
-}
-
-impl TryFrom<ByteVec> for Hash {
-    type Error = SerialiseError;
-    fn try_from(value: ByteVec) -> Result<Self, Self::Error> {
+    fn try_from(value: Arc<ByteVec>) -> Result<Self, Self::Error> {
         match Self::try_from_bytes(value.get_bytes()) {
             Ok(hash) => Ok(hash),
             Err(err) => Err(err),
@@ -131,7 +133,6 @@ impl TryFrom<ByteVec> for Hash {
     }
 }
 
-impl Encodable for Hash {}
 impl Decodable for Hash {}
 
 #[cfg(test)]
@@ -140,22 +141,24 @@ mod tests {
     use super::*;
 
     use base_xx::Encoding;
-    use base_xx::byte_vec::Encodable;
 
     #[test]
     fn test_hash() {
-        let bytes = ByteVec::new(vec![1, 2, 3]);
+        let bytes = ByteVec::new(Arc::new(vec![1, 2, 3]));
         match Hash::try_hash(&bytes, HashAlgorithm::SHA256) {
-            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
-                Ok(hash_ss) => {
-                    let hash_str = hash_ss.get_string();
-                    slogger::debug!("hash: {hash_str}");
-                    slogger::debug!("hash debug: {hash:?}");
-                    assert_eq!(
-                        hash_str,
-                        "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
-                    );
-                }
+            Ok(hash) => match hash.try_to_byte_vec() {
+                Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
+                    Ok(hash_ss) => {
+                        let hash_str = hash_ss.get_string();
+                        slogger::debug!("hash: {hash_str}");
+                        slogger::debug!("hash debug: {hash:?}");
+                        assert_eq!(
+                            hash_str,
+                            "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
+                        );
+                    }
+                    Err(error) => slogger::debug!("serialstring error: {error:?}"),
+                },
                 Err(error) => slogger::debug!("serialstring error: {error:?}"),
             },
             Err(error) => slogger::debug!("hash error: {error:?}"),

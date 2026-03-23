@@ -3,6 +3,7 @@ use crate::{Hash, HashAlgorithm};
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
 use ripemd::{Digest, Ripemd160 as Ripemd160Impl};
+use std::sync::Arc;
 
 /// RIPEMD-160 hash implementation.
 pub struct Ripemd160 {}
@@ -26,7 +27,10 @@ impl Ripemd160 {
         if bytes.len() != 20 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Hash::new(HashAlgorithm::RIPEMD160, ByteVec::new(bytes)))
+        Ok(Hash::new(
+            HashAlgorithm::RIPEMD160,
+            ByteVec::new(Arc::new(bytes)),
+        ))
     }
 }
 
@@ -41,22 +45,24 @@ mod tests {
 
     use slogger::debug;
 
-    use base_xx::byte_vec::Encodable;
     use base_xx::{ByteVec, Encoding};
 
     use super::*;
 
     #[test]
     pub fn test_ripemd160() {
-        let test = ByteVec::new(b"this is a really good test".to_vec());
+        let test = ByteVec::new(Arc::new(b"this is a really good test".to_vec()));
 
         match Hash::try_hash(&test, HashAlgorithm::RIPEMD160) {
-            Ok(hash) => match Hash::try_encode(&hash, Encoding::Base36) {
-                Ok(serialised) => {
-                    let serialised = serialised.get_string();
-                    debug!("sha256 {serialised}");
-                    assert_eq!(serialised, "2ezhwv4qbrkvyajcac6mcf44fjby0igww");
-                }
+            Ok(hash) => match hash.try_to_byte_vec() {
+                Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
+                    Ok(serialised) => {
+                        let serialised = serialised.get_string();
+                        debug!("sha256 {serialised}");
+                        assert_eq!(serialised, "2ezhwv4qbrkvyajcac6mcf44fjby0igww");
+                    }
+                    Err(error) => debug!("serialisation error: {error:?}"),
+                },
                 Err(error) => debug!("serialisation error: {error:?}"),
             },
             Err(error) => debug!("hash error: {error:?}"),
