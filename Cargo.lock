@@ -19,9 +19,9 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "base_xx"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4e4e5804d11175ef6a9bc9ee591756dd8f857e9724a51ba0c4aa6270d7f7ab5"
+checksum = "5e977f0eea79bca8aab14da85e2cd86a3c3ab6de5c42a91358c623c57e50f834"
 dependencies = [
  "chrono",
  "slogger",

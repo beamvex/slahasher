@@ -1,6 +1,7 @@
 use crate::Hash;
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
+use std::sync::Arc;
 
 /// A hash function implementation.
 pub trait Hasher {
@@ -9,5 +10,5 @@ pub trait Hasher {
     /// # Errors
     /// * `SerialiseError` - If hashing fails (for example, due to an error converting the input
     ///   bytes to the internal hash representation)
-    fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError>;
+    fn try_hash(byte_vec: Arc<ByteVec>) -> Result<Arc<Hash>, SerialiseError>;
 }

@@ -9,6 +9,8 @@ use crate::hasher::Hasher;
 
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
+use base_xx::byte_vec::Encodable;
+use base_xx::byte_vec::TryIntoByteVec;
 use base_xx::encoded_string::Decodable;
 
 use crate::HashAlgorithm;
@@ -91,9 +93,9 @@ impl Hash {
     ///
     /// # Errors
     /// Returns `SerialiseError` if the hash cannot be converted to bytes.
-    pub fn try_to_byte_vec(&self) -> Result<ByteVec, SerialiseError> {
+    pub fn try_to_byte_vec(&self) -> Result<Arc<ByteVec>, SerialiseError> {
         match self.try_as_bytes() {
-            Ok(bytes) => Ok(ByteVec::new(Arc::new(bytes))),
+            Ok(bytes) => Ok(Arc::new(ByteVec::new(Arc::new(bytes)))),
             Err(error) => Err(error),
         }
     }
@@ -112,7 +114,10 @@ impl Hash {
     ///
     /// # Errors
     /// Returns `SerialiseError` if hashing fails.
-    pub fn try_hash(byte_vec: &ByteVec, algorithm: HashAlgorithm) -> Result<Self, SerialiseError> {
+    pub fn try_hash(
+        byte_vec: Arc<ByteVec>,
+        algorithm: HashAlgorithm,
+    ) -> Result<Arc<Self>, SerialiseError> {
         match algorithm {
             HashAlgorithm::SHA256 => Sha256::try_hash(byte_vec),
             HashAlgorithm::KECCAK256 => Keccak256::try_hash(byte_vec),
@@ -133,6 +138,13 @@ impl TryFrom<Arc<ByteVec>> for Hash {
     }
 }
 
+impl TryIntoByteVec for Hash {
+    fn try_into_byte_vec(value: Arc<Self>) -> Result<Arc<ByteVec>, SerialiseError> {
+        value.try_to_byte_vec()
+    }
+}
+
+impl Encodable for Hash {}
 impl Decodable for Hash {}
 
 #[cfg(test)]
@@ -146,19 +158,16 @@ mod tests {
     fn test_hash() {
         let bytes = ByteVec::new(Arc::new(vec![1, 2, 3]));
         match Hash::try_hash(&bytes, HashAlgorithm::SHA256) {
-            Ok(hash) => match hash.try_to_byte_vec() {
-                Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
-                    Ok(hash_ss) => {
-                        let hash_str = hash_ss.get_string();
-                        slogger::debug!("hash: {hash_str}");
-                        slogger::debug!("hash debug: {hash:?}");
-                        assert_eq!(
-                            hash_str,
-                            "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
-                        );
-                    }
-                    Err(error) => slogger::debug!("serialstring error: {error:?}"),
-                },
+            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+                Ok(hash_ss) => {
+                    let hash_str = hash_ss.get_string();
+                    slogger::debug!("hash: {hash_str}");
+                    slogger::debug!("hash debug: {hash:#?}");
+                    assert_eq!(
+                        hash_str,
+                        "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
+                    );
+                }
                 Err(error) => slogger::debug!("serialstring error: {error:?}"),
             },
             Err(error) => slogger::debug!("hash error: {error:?}"),

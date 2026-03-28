@@ -14,7 +14,7 @@ test = true
 
 [dependencies]
 slogger = "0.1.2"
-base_xx = "0.8.0"
+base_xx = "0.9.0"
 chrono = "0.4.34"
 sha2 = "0.11.0-rc.5"
 sha3 = "0.10.0" 
