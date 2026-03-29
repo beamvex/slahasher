@@ -58,7 +58,7 @@ impl Hash {
     /// # Returns
     /// `true` if the hash of the provided bytes matches this hash, `false` otherwise
     #[must_use]
-    pub fn verify(&self, bytes: &ByteVec) -> bool {
+    pub fn verify(&self, bytes: Arc<ByteVec>) -> bool {
         match self.algorithm {
             HashAlgorithm::SHA256 => {
                 Sha256::try_hash(bytes).is_ok_and(|hash| hash.get_bytes() == self.get_bytes())
@@ -156,9 +156,9 @@ mod tests {
 
     #[test]
     fn test_hash() {
-        let bytes = ByteVec::new(Arc::new(vec![1, 2, 3]));
-        match Hash::try_hash(&bytes, HashAlgorithm::SHA256) {
-            Ok(hash) => match hash.try_encode(Encoding::Base36) {
+        let bytes = Arc::new(ByteVec::new(Arc::new(vec![1, 2, 3])));
+        match Hash::try_hash(Arc::clone(&bytes), HashAlgorithm::SHA256) {
+            Ok(hash) => match Arc::clone(&hash).try_encode(Encoding::Base36) {
                 Ok(hash_ss) => {
                     let hash_str = hash_ss.get_string();
                     slogger::debug!("hash: {hash_str}");

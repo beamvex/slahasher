@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use base_xx::{ByteVec, SerialiseError};
 
 use crate::{Hash, HashAlgorithm};
@@ -19,7 +21,7 @@ where
     /// # Errors
     /// * `SerialiseError` - If the specified encoding is unsupported or an error occurs during serialisation.
     #[must_use = "The result of this function is a `Result` containing the encoded string if successful, or a `SerialiseError` if an error occurs."]
-    fn try_hash(&self, algorithm: HashAlgorithm) -> Result<Hash, SerialiseError> {
+    fn try_hash(&self, algorithm: HashAlgorithm) -> Result<Arc<Hash>, SerialiseError> {
         match ByteVec::try_from(self) {
             Ok(bytes) => Hash::try_hash(&bytes, algorithm),
             Err(error) => Err(error),
