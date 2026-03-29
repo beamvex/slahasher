@@ -15,7 +15,7 @@ impl Keccak256 {
     ///
     /// Returns `SerialiseError` if the computed hash is not 32 bytes.
     #[must_use = "the computed hash is returned in the Ok value"]
-    pub fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
+    pub fn try_from_bytes(bytes: &ByteVec) -> Result<Arc<Hash>, SerialiseError> {
         let mut hasher = Keccak256Impl::new();
         let bytes = bytes.get_bytes();
         hasher.update(bytes);
@@ -24,16 +24,16 @@ impl Keccak256 {
         if bytes.len() != 32 {
             return Err(SerialiseError::new("Invalid hash length".to_string()));
         }
-        Ok(Hash::new(
+        Ok(Arc::new(Hash::new(
             HashAlgorithm::KECCAK256,
             ByteVec::new(Arc::new(bytes)),
-        ))
+        )))
     }
 }
 
 impl Hasher for Keccak256 {
-    fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError> {
-        Self::try_from_bytes(byte_vec)
+    fn try_hash(byte_vec: Arc<ByteVec>) -> Result<Arc<Hash>, SerialiseError> {
+        Self::try_from_bytes(byte_vec.as_ref())
     }
 }
 
@@ -50,7 +50,7 @@ mod tests {
     pub fn test_keccak256() {
         let test = ByteVec::new(Arc::new(b"this is a really good test".to_vec()));
 
-        match Hash::try_hash(&test, HashAlgorithm::KECCAK256) {
+        match Hash::try_hash(Arc::new(test), HashAlgorithm::KECCAK256) {
             Ok(hash) => match hash.try_to_byte_vec() {
                 Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
                     Ok(serialised) => {

@@ -25,7 +25,7 @@ impl Sha256 {
     /// # Returns
     /// A new SHA-256 hash value containing the hash of the input data
     #[must_use = "This computes a hash value but does nothing if unused"]
-    fn try_from_bytes(bytes: &ByteVec) -> Result<Hash, SerialiseError> {
+    fn try_from_bytes(bytes: &ByteVec) -> Result<Arc<Hash>, SerialiseError> {
         let mut hasher = Sha256Impl::new();
         let bytes = bytes.get_bytes();
         hasher.update(bytes);
@@ -36,13 +36,13 @@ impl Sha256 {
         }
 
         let hash = Hash::new(HashAlgorithm::SHA256, ByteVec::new(Arc::new(bytes)));
-        Ok(hash)
+        Ok(Arc::new(hash))
     }
 }
 
 impl Hasher for Sha256 {
-    fn try_hash(byte_vec: &ByteVec) -> Result<Hash, SerialiseError> {
-        Self::try_from_bytes(byte_vec)
+    fn try_hash(byte_vec: Arc<ByteVec>) -> Result<Arc<Hash>, SerialiseError> {
+        Self::try_from_bytes(byte_vec.as_ref())
     }
 }
 
@@ -59,7 +59,7 @@ mod tests {
     pub fn test_sha256() {
         let test = ByteVec::new(Arc::new(b"this is a really good test".to_vec()));
 
-        match Hash::try_hash(&test, HashAlgorithm::SHA256) {
+        match Hash::try_hash(Arc::new(test), HashAlgorithm::SHA256) {
             Ok(hash) => match hash.try_to_byte_vec() {
                 Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
                     Ok(serialised) => {

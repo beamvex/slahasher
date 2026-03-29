@@ -9,7 +9,6 @@ use crate::hasher::Hasher;
 
 use base_xx::ByteVec;
 use base_xx::SerialiseError;
-use base_xx::byte_vec::Encodable;
 use base_xx::byte_vec::TryIntoByteVec;
 use base_xx::encoded_string::Decodable;
 
@@ -144,7 +143,6 @@ impl TryIntoByteVec for Hash {
     }
 }
 
-impl Encodable for Hash {}
 impl Decodable for Hash {}
 
 #[cfg(test)]
@@ -158,16 +156,19 @@ mod tests {
     fn test_hash() {
         let bytes = Arc::new(ByteVec::new(Arc::new(vec![1, 2, 3])));
         match Hash::try_hash(Arc::clone(&bytes), HashAlgorithm::SHA256) {
-            Ok(hash) => match Arc::clone(&hash).try_encode(Encoding::Base36) {
-                Ok(hash_ss) => {
-                    let hash_str = hash_ss.get_string();
-                    slogger::debug!("hash: {hash_str}");
-                    slogger::debug!("hash debug: {hash:#?}");
-                    assert_eq!(
-                        hash_str,
-                        "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
-                    );
-                }
+            Ok(hash) => match hash.try_to_byte_vec() {
+                Ok(bytes) => match bytes.try_encode(Encoding::Base36) {
+                    Ok(hash_ss) => {
+                        let hash_str = hash_ss.get_string();
+                        slogger::debug!("hash: {hash_str}");
+                        slogger::debug!("hash debug: {hash:#?}");
+                        assert_eq!(
+                            hash_str,
+                            "hwis74tcngndmvw8t0jaf8baow2455synbsyr8u6vfvfvi6mgld"
+                        );
+                    }
+                    Err(error) => slogger::debug!("serialstring error: {error:?}"),
+                },
                 Err(error) => slogger::debug!("serialstring error: {error:?}"),
             },
             Err(error) => slogger::debug!("hash error: {error:?}"),
